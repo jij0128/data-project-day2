@@ -10,7 +10,16 @@
 #
 # ----------------------------------------------------------------------------
 
-from src import config, data_loader, eda, ml_pipeline, preprocessing, statistics_analysis, visualization
+from src import (
+    config,
+    data_loader,
+    eda,
+    ml_pipeline,
+    preprocessing,
+    report,
+    statistics_analysis,
+    visualization,
+)
 
 
 def main() -> None:
@@ -20,6 +29,7 @@ def main() -> None:
     df_pandas = data_loader.load_with_pandas(raw_path)
     df_polars = data_loader.load_with_polars(raw_path)
     data_loader.compare_pandas_polars(df_pandas, df_polars)
+    raw_shape = df_pandas.shape
 
     print("\n############# 기본 EDA #############")
     eda.run_eda(df_pandas)
@@ -30,31 +40,52 @@ def main() -> None:
     df_clean = preprocessing.clean_data(df_pandas)
 
     print("\n############# 연관성 기반 피처 선택 #############")
-    selected_numeric, selected_categorical, numeric_corr = statistics_analysis.select_relevant_features(
-        df_clean, config.NUMERIC_COLS, config.CATEGORICAL_COLS, config.TARGET_COL
+    selected_numeric, selected_categorical, numeric_corr = (
+        statistics_analysis.select_relevant_features(
+            df_clean, config.NUMERIC_COLS, config.CATEGORICAL_COLS, config.TARGET_COL
+        )
     )
     top_numeric_col = numeric_corr.abs().idxmax()
 
     print("\n############# 시각화 (Seaborn / Plotly) #############")
+    heatmap_path = config.CHART_DIR / "correlation_heatmap.png"
+    boxplot_path = config.CHART_DIR / "income_group_comparison.html"
     visualization.plot_correlation_heatmap(
-        df_clean, selected_numeric, config.TARGET_COL, config.CHART_DIR / "correlation_heatmap.png"
+        df_clean, selected_numeric, config.TARGET_COL, heatmap_path
     )
     visualization.plot_income_group_comparison(
-        df_clean, config.TARGET_COL, top_numeric_col, config.CHART_DIR / "income_group_comparison.html"
+        df_clean, config.TARGET_COL, top_numeric_col, boxplot_path
     )
 
     print("\n############# 통계 분석 #############")
-    statistics_analysis.descriptive_statistics(df_clean, selected_numeric)
-    statistics_analysis.correlation_matrix(df_clean, selected_numeric)
-    statistics_analysis.run_ttest(df_clean, config.TARGET_COL, top_numeric_col, "<=50K", ">50K")
+    desc_stats = statistics_analysis.descriptive_statistics(df_clean, selected_numeric)
+    corr_matrix = statistics_analysis.correlation_matrix(df_clean, selected_numeric)
+    ttest_result = statistics_analysis.run_ttest(
+        df_clean, config.TARGET_COL, top_numeric_col, "<=50K", ">50K"
+    )
+    ttest_info = (
+        (top_numeric_col, "<=50K", ">50K", *ttest_result) if ttest_result else None
+    )
 
     print("\n############# ML Pipeline (훈련 · 평가 · 저장 · 재로딩) #############")
-    ml_pipeline.train_evaluate_save(
-        df_clean,
-        selected_numeric,
-        selected_categorical,
-        config.TARGET_COL,
-        config.MODEL_DIR / "income_classifier.joblib",
+    model_path = config.MODEL_DIR / "income_classifier.joblib"
+    _, metrics = ml_pipeline.train_evaluate_save(
+        df_clean, selected_numeric, selected_categorical, config.TARGET_COL, model_path
+    )
+
+    print("\n############# 리포트 자동 생성 #############")
+    report.generate_report(
+        raw_shape=raw_shape,
+        clean_shape=df_clean.shape,
+        selected_numeric=selected_numeric,
+        selected_categorical=selected_categorical,
+        desc_stats=desc_stats,
+        corr_matrix=corr_matrix,
+        ttest_info=ttest_info,
+        metrics=metrics,
+        chart_paths={"상관관계 히트맵": heatmap_path, "소득 그룹 비교": boxplot_path},
+        model_path=model_path,
+        report_path=config.REPORT_PATH,
     )
 
 

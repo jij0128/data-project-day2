@@ -4,7 +4,13 @@ import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, f1_score, precision_score, recall_score
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -21,7 +27,12 @@ def build_pipeline(numeric_cols: list[str], categorical_cols: list[str]) -> Pipe
     return Pipeline(
         steps=[
             ("preprocessor", preprocessor),
-            ("model", RandomForestClassifier(n_estimators=200, max_depth=12, random_state=42, n_jobs=-1)),
+            (
+                "model",
+                RandomForestClassifier(
+                    n_estimators=200, max_depth=12, random_state=42, n_jobs=-1
+                ),
+            ),
         ]
     )
 
@@ -32,7 +43,7 @@ def train_evaluate_save(
     categorical_cols: list[str],
     target_col: str,
     model_path: Path,
-) -> Pipeline:
+) -> tuple[Pipeline, dict[str, float]]:
     X = df[numeric_cols + categorical_cols]
     y = df[target_col]
 
@@ -45,11 +56,15 @@ def train_evaluate_save(
 
     y_pred = pipeline.predict(X_test)
     pos_label = ">50K"
+    metrics = {
+        "accuracy": accuracy_score(y_test, y_pred),
+        "precision": precision_score(y_test, y_pred, pos_label=pos_label),
+        "recall": recall_score(y_test, y_pred, pos_label=pos_label),
+        "f1": f1_score(y_test, y_pred, pos_label=pos_label),
+    }
     print("=== 평가 지표 ===")
-    print(f"accuracy ={accuracy_score(y_test, y_pred):.4f}")
-    print(f"precision={precision_score(y_test, y_pred, pos_label=pos_label):.4f}")
-    print(f"recall   ={recall_score(y_test, y_pred, pos_label=pos_label):.4f}")
-    print(f"f1       ={f1_score(y_test, y_pred, pos_label=pos_label):.4f}")
+    for name, value in metrics.items():
+        print(f"{name:<9}={value:.4f}")
     print("\n=== classification report ===")
     print(classification_report(y_test, y_pred))
 
@@ -60,6 +75,8 @@ def train_evaluate_save(
     # 재로딩 후 예측이 동일한지 확인
     reloaded_pipeline = joblib.load(model_path)
     y_pred_reloaded = reloaded_pipeline.predict(X_test)
-    print(f"[재로딩] 재로딩한 모델의 예측이 기존과 동일함: {(y_pred == y_pred_reloaded).all()}")
+    print(
+        f"[재로딩] 재로딩한 모델의 예측이 기존과 동일함: {(y_pred == y_pred_reloaded).all()}"
+    )
 
-    return pipeline
+    return pipeline, metrics

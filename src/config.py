@@ -10,6 +10,7 @@ DATA_DIR = BASE_DIR / "data"
 OUTPUT_DIR = BASE_DIR / "output"
 CHART_DIR = OUTPUT_DIR / "charts"
 MODEL_DIR = OUTPUT_DIR / "models"
+REPORT_PATH = OUTPUT_DIR / "report.md"
 
 DATA_URL = os.getenv("url")
 if not DATA_URL:

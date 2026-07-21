@@ -52,7 +52,9 @@ def load_with_polars(path: Path) -> pl.DataFrame:
 
 def compare_pandas_polars(pdf: pd.DataFrame, pldf: pl.DataFrame) -> None:
     print("=== Pandas vs Polars 로딩 결과 비교 ===")
-    print(f"[Pandas] shape={pdf.shape}, 메모리={pdf.memory_usage(deep=True).sum() / 1024 ** 2:.2f}MB")
+    print(
+        f"[Pandas] shape={pdf.shape}, 메모리={pdf.memory_usage(deep=True).sum() / 1024**2:.2f}MB"
+    )
     print(f"[Polars] shape={pldf.shape}, 메모리={pldf.estimated_size('mb'):.2f}MB")
 
     print("\n[Pandas dtypes]")

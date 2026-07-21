@@ -2,6 +2,7 @@ import pandas as pd
 
 
 def run_eda(df: pd.DataFrame) -> None:
+    """정제 전 원본 데이터의 shape·info·head·기술통계·범주형 값 분포를 훑어보는 기본 EDA."""
     print("=== shape ===")
     print(df.shape)
 

@@ -1,3 +1,15 @@
+# ---------------------------------------------------------------------------
+# 작성자 : 문승인, 서수영, 이명로, 최승민, 정인제, 김서현
+# 작성일 : 2026-07-21
+# 작성목적 : ColumnTransformer + RandomForestClassifier Pipeline 구성, 학습·평가·저장·재로딩
+#
+# 본파일은 Skala 교육을 위한 Sample 코드이므로 작성자에게 모든 저작권이 있습니다.
+#
+# 변경사항 내역(날짜, 변경목적, 변경 내용 순으로 기입)
+#   - 2026-07-21, report.md 자동 생성 지원, train_evaluate_save가 평가지표 dict를 반환하도록 수정
+#
+# ----------------------------------------------------------------------------
+
 from pathlib import Path
 
 import joblib
@@ -17,6 +29,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 def build_pipeline(numeric_cols: list[str], categorical_cols: list[str]) -> Pipeline:
+    """수치형 표준화 + 범주형 원-핫 인코딩(ColumnTransformer)과 RandomForestClassifier를 하나의 Pipeline으로 구성한다."""
     preprocessor = ColumnTransformer(
         transformers=[
             ("num", StandardScaler(), numeric_cols),
@@ -44,6 +57,7 @@ def train_evaluate_save(
     target_col: str,
     model_path: Path,
 ) -> tuple[Pipeline, dict[str, float]]:
+    """Pipeline을 학습·평가하고 accuracy/precision/recall/F1을 계산한 뒤 joblib으로 저장, 재로딩까지 검증한다."""
     X = df[numeric_cols + categorical_cols]
     y = df[target_col]
 

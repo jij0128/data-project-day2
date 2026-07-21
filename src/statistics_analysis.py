@@ -1,8 +1,21 @@
+# ---------------------------------------------------------------------------
+# 작성자 : 문승인, 서수영, 이명로, 최승민, 정인제, 김서현
+# 작성일 : 2026-07-21
+# 작성목적 : 기술통계·상관계수 산출, 피처 선택(상관계수/카이제곱), t-test 검정 및 p-value 해석
+#
+# 본파일은 Skala 교육을 위한 Sample 코드이므로 작성자에게 모든 저작권이 있습니다.
+#
+# 변경사항 내역(날짜, 변경목적, 변경 내용 순으로 기입)
+#   - 2026-07-21, report.md 자동 생성 지원, run_ttest가 (t_stat, p_value)를 반환하도록 수정
+#
+# ----------------------------------------------------------------------------
+
 import pandas as pd
 from scipy import stats
 
 
 def descriptive_statistics(df: pd.DataFrame, numeric_cols: list[str]) -> pd.DataFrame:
+    """수치형 변수의 평균·표준편차·중앙값·1/3사분위수를 계산해 출력한다."""
     desc = df[numeric_cols].agg(
         [
             "mean",
@@ -20,6 +33,7 @@ def descriptive_statistics(df: pd.DataFrame, numeric_cols: list[str]) -> pd.Data
 
 
 def correlation_matrix(df: pd.DataFrame, numeric_cols: list[str]) -> pd.DataFrame:
+    """수치형 변수 간 피어슨 상관계수를 계산해 출력한다."""
     corr = df[numeric_cols].corr()
     print("\n=== 수치형 변수 간 상관계수 ===")
     print(corr)

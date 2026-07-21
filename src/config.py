@@ -12,10 +12,11 @@ CHART_DIR = OUTPUT_DIR / "charts"
 MODEL_DIR = OUTPUT_DIR / "models"
 REPORT_PATH = OUTPUT_DIR / "report.md"
 
-DATA_URL = os.getenv("url")
-if not DATA_URL:
-    # .env에 url 키가 없거나 값이 비어있는 경우 다운로드 단계에서 원인을 알 수 없는 오류가 나므로 미리 안내
-    raise RuntimeError(".env 파일에 'url' 값이 설정되어 있지 않습니다.")
+# UCI Adult 데이터셋 URL은 비밀값이 아닌 공개 링크이므로 기본값으로 코드에 둔다.
+# .env가 없어도(예: 다른 팀원/채점자가 새로 clone한 경우) 바로 실행되며,
+# 다른 URL(미러 등)을 쓰고 싶을 때만 .env의 'url' 값으로 덮어쓰면 된다.
+_DEFAULT_DATA_URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
+DATA_URL = os.getenv("url", _DEFAULT_DATA_URL)
 
 RAW_DATA_PATH = DATA_DIR / "adult.data"
 
